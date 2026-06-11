@@ -24,6 +24,7 @@
 </head>
 <body class="bg-slate-100 font-sans h-screen flex flex-col overflow-hidden text-slate-900 antialiased">
 
+    <!-- ── LOGIN OVERLAY ── -->
     <div id="login-overlay" class="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 flex items-center justify-center">
         <div class="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none"></div>
         <div class="bg-white rounded-2xl p-10 w-full max-w-sm shadow-[0_30px_60px_rgba(0,0,0,0.45)] relative z-10 mx-4">
@@ -32,9 +33,7 @@
                 <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">G.M. Enterprises</h1>
                 <p class="text-[11px] font-semibold text-slate-400 mt-1 uppercase tracking-wider">Reports Login</p>
             </div>
-
             <div id="login-error" class="hidden bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2 text-sm font-medium mb-4"></div>
-
             <div class="space-y-4">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Username</label>
@@ -81,20 +80,23 @@
         </div>
 
         <!-- Tab bar -->
-        <div class="bg-white border-b border-slate-200 px-5 flex gap-1 shrink-0">
-            <button onclick="switchReportTab('reprint')" id="rep-tab-reprint" class="rep-tab-btn px-4 py-3 text-xs font-bold border-b-2 border-teal-600 text-teal-700 transition-colors">
+        <div class="bg-white border-b border-slate-200 px-5 flex gap-1 shrink-0 overflow-x-auto">
+            <button onclick="switchReportTab('reprint')" id="rep-tab-reprint" class="rep-tab-btn whitespace-nowrap px-4 py-3 text-xs font-bold border-b-2 border-teal-600 text-teal-700 transition-colors">
                 🖨️ Reprint Invoice
             </button>
-            <button onclick="switchReportTab('month')" id="rep-tab-month" class="rep-tab-btn px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
+            <button onclick="switchReportTab('challan')" id="rep-tab-challan" class="rep-tab-btn whitespace-nowrap px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
+                📦 Challans
+            </button>
+            <button onclick="switchReportTab('month')" id="rep-tab-month" class="rep-tab-btn whitespace-nowrap px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
                 📅 Month-wise
             </button>
-            <button onclick="switchReportTab('year')" id="rep-tab-year" class="rep-tab-btn px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
+            <button onclick="switchReportTab('year')" id="rep-tab-year" class="rep-tab-btn whitespace-nowrap px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
                 📆 Year-wise
             </button>
-            <button onclick="switchReportTab('buyer')" id="rep-tab-buyer" class="rep-tab-btn px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
+            <button onclick="switchReportTab('buyer')" id="rep-tab-buyer" class="rep-tab-btn whitespace-nowrap px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
                 👤 Buyer-wise
             </button>
-            <button onclick="switchReportTab('all')" id="rep-tab-all" class="rep-tab-btn px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
+            <button onclick="switchReportTab('all')" id="rep-tab-all" class="rep-tab-btn whitespace-nowrap px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
                 📋 All Invoices
             </button>
         </div>
@@ -117,7 +119,6 @@
                         </div>
                         <div id="reprint-error" class="hidden mt-3 bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2 text-xs font-medium"></div>
                     </div>
-
                     <!-- Fetched invoice preview card -->
                     <div id="reprint-preview-card" class="hidden bg-white rounded-xl border border-slate-200 overflow-hidden max-w-2xl mx-auto mt-4">
                         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -155,6 +156,101 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ══════════════════════════════════════════════════════ -->
+                <!-- ── CHALLAN TAB ── -->
+                <!-- ══════════════════════════════════════════════════════ -->
+                <div id="rep-panel-challan" class="rep-panel hidden">
+                    <div class="bg-white rounded-xl border border-slate-200 p-5">
+                        <!-- Search + controls -->
+                        <div class="flex flex-wrap gap-3 items-end mb-5">
+                            <div class="flex-1 min-w-[180px]">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Search</label>
+                                <input type="text" id="challan-search" placeholder="Challan no., buyer name…" oninput="applyChallanFilter()" class="w-full border border-slate-300 p-2.5 rounded-lg text-sm outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all text-slate-700 shadow-sm" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">From Date</label>
+                                <input type="date" id="challan-from" oninput="applyChallanFilter()" class="border border-slate-300 p-2.5 rounded-lg text-sm outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all text-slate-700 shadow-sm" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">To Date</label>
+                                <input type="date" id="challan-to" oninput="applyChallanFilter()" class="border border-slate-300 p-2.5 rounded-lg text-sm outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all text-slate-700 shadow-sm" />
+                            </div>
+                            <button onclick="clearChallanFilter()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-sm transition-all">Clear</button>
+                            <button onclick="downloadChallanExcel()" class="flex items-center gap-1.5 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-sm transition-all ml-auto">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download Excel
+                            </button>
+                        </div>
+                        <!-- Summary row -->
+                        <div id="challan-summary-row" class="text-xs text-slate-500 font-medium mb-3"></div>
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="dash-table w-full">
+                                <thead><tr>
+                                    <th>Challan No.</th>
+                                    <th>Date</th>
+                                    <th>Buyer</th>
+                                    <th>Ref. Invoice No.</th>
+                                    <th class="text-right pr-5">Grand Total</th>
+                                    <th>Saved By</th>
+                                    <th class="text-center">Action</th>
+                                </tr></thead>
+                                <tbody id="challan-report-body">
+                                    <tr><td colspan="7" class="text-center py-8 text-slate-400 text-xs">
+                                        <svg class="animate-spin inline mr-2" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                        Loading challans…
+                                    </td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Challan detail modal -->
+                    <div id="challan-modal" class="hidden fixed inset-0 z-[500] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+                            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                                <div>
+                                    <span class="font-mono font-extrabold text-amber-700 text-base" id="cm-challan-no"></span>
+                                    <span class="ml-3 text-xs text-slate-400" id="cm-date"></span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="printChallanWindow()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs transition-all">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                        Print
+                                    </button>
+                                    <button onclick="closeChallanModal()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-xs transition-all">✕ Close</button>
+                                </div>
+                            </div>
+                            <div class="overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Buyer</div>
+                                        <div class="font-bold text-slate-800" id="cm-buyer-name"></div>
+                                        <div class="text-xs text-slate-500 mt-0.5" id="cm-buyer-phone"></div>
+                                        <div class="text-xs text-slate-500 font-mono mt-0.5" id="cm-buyer-email"></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Totals</div>
+                                        <div class="text-xs text-slate-500">Subtotal: <span class="font-semibold text-slate-700" id="cm-subtotal"></span></div>
+                                        <div class="text-xs text-slate-500">Tax: <span class="font-semibold text-slate-700" id="cm-tax"></span></div>
+                                        <div class="text-sm font-extrabold text-slate-800 mt-1">Grand Total: <span id="cm-grand"></span></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Items</div>
+                                    <table class="dash-table w-full border border-slate-100 rounded-lg overflow-hidden">
+                                        <thead><tr>
+                                            <th>#</th><th>Description</th><th>HSN</th><th>Qty</th><th>Rate</th><th class="text-right pr-4">Amount</th>
+                                        </tr></thead>
+                                        <tbody id="cm-items-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ── END CHALLAN TAB ── -->
 
                 <!-- ── MONTH-WISE TAB ── -->
                 <div id="rep-panel-month" class="rep-panel hidden">
@@ -283,7 +379,7 @@
                                 Download Excel
                             </button>
                         </div>
-                        <div id="all-summary-row" class="text-xs text-slate-500 font-medium mb-3" ></div>
+                        <div id="all-summary-row" class="text-xs text-slate-500 font-medium mb-3"></div>
                         <div class="overflow-x-auto">
                             <table class="dash-table w-full">
                                 <thead><tr>
@@ -353,9 +449,8 @@
 
                 if (data.success) {
                     sessionStorage.setItem('gme_auth', 'true');
-                    sessionStorage.setItem('gme_username', data.username);
-                    sessionStorage.setItem('gme_display', data.displayName || data.username);
-                    
+                    sessionStorage.setItem('gme_username', data.username || username);
+                    sessionStorage.setItem('gme_display', data.displayName || username);
                     document.getElementById('login-overlay').classList.add('hidden');
                     document.getElementById('reports-main').classList.remove('hidden');
                     document.getElementById('reports-main').classList.add('flex');
@@ -382,7 +477,6 @@
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
             document.getElementById('login-error').style.display = 'none';
-            
             document.getElementById('reports-main').classList.add('hidden');
             document.getElementById('reports-main').classList.remove('flex');
             document.getElementById('login-overlay').classList.remove('hidden');
@@ -393,7 +487,7 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `p-4 rounded-xl flex items-center gap-3 text-white transition-all shadow-xl border border-white/10 max-w-sm transform translate-y-0 opacity-100 pointer-events-auto ${type === 'success' ? 'bg-slate-900 shadow-slate-900/20' : 'bg-red-600 shadow-red-600/20'}`;
-            toast.innerHTML = type === 'success' 
+            toast.innerHTML = type === 'success'
                 ? `<svg width="20" height="20" class="text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span class="font-semibold text-sm leading-snug">${message}</span>`
                 : `<svg width="20" height="20" class="text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span class="font-semibold text-sm leading-snug">${message}</span>`;
             container.appendChild(toast);
@@ -429,20 +523,17 @@
         }
 
         function numberToWords(price) {
-            const sglDigit = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-            const dblDigit = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-            const tensPlace = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-            
+            const sglDigit  = ["Zero","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"];
+            const dblDigit  = ["Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+            const tensPlace = ["","Ten","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
             if (price.toString().length > 9) return "Amount too large";
             if (price === 0) return "Zero Only";
-
-            const numString = price.toString().padStart(9, '0');
-            const crores    = parseInt(numString.substring(0, 2), 10);
-            const lakhs     = parseInt(numString.substring(2, 4), 10);
-            const thousands = parseInt(numString.substring(4, 6), 10);
-            const hundreds  = parseInt(numString.substring(6, 7), 10);
+            const numString   = price.toString().padStart(9, '0');
+            const crores      = parseInt(numString.substring(0, 2), 10);
+            const lakhs       = parseInt(numString.substring(2, 4), 10);
+            const thousands   = parseInt(numString.substring(4, 6), 10);
+            const hundreds    = parseInt(numString.substring(6, 7), 10);
             const tensAndOnes = parseInt(numString.substring(7, 9), 10);
-
             let words = "";
             const processTwoDigits = (num, suffix) => {
                 if (num > 0) {
@@ -455,7 +546,6 @@
                     }
                 }
             };
-
             processTwoDigits(crores, "Crore");
             processTwoDigits(lakhs, "Lakh");
             processTwoDigits(thousands, "Thousand");
@@ -472,36 +562,50 @@
             return words.trim() + " Only";
         }
 
-        let repAllInvoices = [];
+        // ── DATA STORES ──────────────────────────────────────────────────────────
+        let repAllInvoices      = [];
+        let repAllChallans      = [];
+        let repChallanFiltered  = [];
         let repYearChartInstance = null;
         let currentReprintInvoice = null;
+        let currentChallanDetail  = null;
 
+        // ── LOAD (fetches both invoices + challans) ───────────────────────────────
         async function loadReports() {
             const icon = document.getElementById('rep-refresh-icon');
             icon.classList.add('animate-spin');
             try {
-                const res  = await fetch(googleScriptUrl + '?action=getDashboard');
-                const data = await res.json();
-                repAllInvoices = (data.invoices || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+                const [invRes, chalRes] = await Promise.all([
+                    fetch(googleScriptUrl + '?action=getDashboard'),
+                    fetch(googleScriptUrl + '?action=getChallansData')
+                ]);
+                const invData  = await invRes.json();
+                const chalData = await chalRes.json();
+
+                repAllInvoices = (invData.invoices || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+                repAllChallans = (chalData.challans || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+
                 populateYearSelectors();
-                const active = document.querySelector('.rep-tab-btn[style*="border-color"]') || document.getElementById('rep-tab-reprint');
-                const activeId = active.id.replace('rep-tab-','');
-                applyCurrentTabData(activeId);
+
+                const active = document.querySelector('.rep-tab-btn.border-teal-600') || document.getElementById('rep-tab-reprint');
+                try {
+                    const activeId = active.id.replace('rep-tab-','');
+                    if (activeId === 'all')     applyAllFilter();
+                    if (activeId === 'challan') renderChallanTable(repAllChallans);
+                } catch(e) {}
+
                 applyAllFilter();
+                renderChallanTable(repAllChallans);
             } catch(e) {
-                repAllInvoices = [];
+                showToast('Failed to load data. Check your script URL.', 'error');
             } finally {
                 icon.classList.remove('animate-spin');
             }
         }
 
-        function applyCurrentTabData(tabId) {
-            if (tabId === 'all') applyAllFilter();
-        }
-
         function populateYearSelectors() {
-            const fySet  = new Set();
-            const cySet  = new Set();
+            const fySet = new Set();
+            const cySet = new Set();
             repAllInvoices.forEach(inv => {
                 const d = new Date(inv.date);
                 if (isNaN(d)) return;
@@ -524,16 +628,22 @@
             document.getElementById('rep-panel-' + tabId).classList.remove('hidden');
 
             document.querySelectorAll('.rep-tab-btn').forEach(btn => {
-                btn.classList.remove('border-teal-600', 'text-teal-700');
+                btn.classList.remove('border-teal-600', 'text-teal-700', 'border-amber-500', 'text-amber-700');
                 btn.classList.add('border-transparent', 'text-slate-500');
             });
             const active = document.getElementById('rep-tab-' + tabId);
             active.classList.remove('border-transparent', 'text-slate-500');
-            active.classList.add('border-teal-600', 'text-teal-700');
+            if (tabId === 'challan') {
+                active.classList.add('border-amber-500', 'text-amber-700');
+            } else {
+                active.classList.add('border-teal-600', 'text-teal-700');
+            }
 
-            if (tabId === 'all') applyAllFilter();
+            if (tabId === 'all')     applyAllFilter();
+            if (tabId === 'challan') applyChallanFilter();
         }
 
+        // ── INVOICE TABLE HELPERS ─────────────────────────────────────────────────
         function reportTableRows(invArr) {
             if (!invArr.length) return '<tr><td colspan="6" class="text-center py-10 text-slate-400 text-xs">No invoices found for this filter.</td></tr>';
             return invArr.map(inv => `
@@ -557,6 +667,7 @@
             document.getElementById(avgId).textContent   = fmtINR(avg);
         }
 
+        // ── MONTH FILTER ──────────────────────────────────────────────────────────
         function applyMonthFilter() {
             const val = document.getElementById('filter-month').value;
             if (!val) { showToast('Please select a month', 'error'); return; }
@@ -572,6 +683,7 @@
             document.getElementById('month-summary-cards').classList.add('hidden');
         }
 
+        // ── YEAR FILTER ───────────────────────────────────────────────────────────
         function applyYearFilter() {
             const fy = document.getElementById('filter-fy').value;
             const cy = document.getElementById('filter-cy').value;
@@ -579,16 +691,14 @@
 
             let filtered;
             if (fy) {
-                const parts = fy.split('-');
+                const parts  = fy.split('-');
                 const startY = 2000 + parseInt(parts[0]);
-                const endY   = 2000 + parseInt(parts[1]);
                 filtered = repAllInvoices.filter(inv => {
                     const d = new Date(inv.date);
                     if (isNaN(d)) return false;
                     const m = d.getMonth();
                     const y = d.getFullYear();
-                    const invStartY = m >= 3 ? y : y - 1;
-                    return invStartY === startY;
+                    return (m >= 3 ? y : y - 1) === startY;
                 });
             } else {
                 filtered = repAllInvoices.filter(inv => {
@@ -635,6 +745,7 @@
             if (repYearChartInstance) { repYearChartInstance.destroy(); repYearChartInstance = null; }
         }
 
+        // ── BUYER FILTER ──────────────────────────────────────────────────────────
         function onBuyerFilterInput(val) {
             const suggBox = document.getElementById('buyer-filter-suggestions');
             if (val.trim().length < 1) { suggBox.classList.add('hidden'); return; }
@@ -654,6 +765,9 @@
                 const b = document.getElementById('buyer-filter-suggestions');
                 if (b) b.classList.add('hidden');
             }
+            if (!e.target.closest('#challan-modal')) {
+                // modal close handled by button only
+            }
         });
 
         function applyBuyerFilter() {
@@ -671,6 +785,7 @@
             document.getElementById('buyer-summary-cards').classList.add('hidden');
         }
 
+        // ── ALL INVOICES FILTER ───────────────────────────────────────────────────
         function applyAllFilter() {
             const search  = (document.getElementById('filter-all-search').value || '').toLowerCase();
             const fromVal = document.getElementById('filter-all-from').value;
@@ -702,106 +817,358 @@
             applyAllFilter();
         }
 
-        function downloadAllExcel() {
-            // Gather the currently active filter
-            const search  = (document.getElementById('filter-all-search').value || '').toLowerCase();
-            const fromVal = document.getElementById('filter-all-from').value;
-            const toVal   = document.getElementById('filter-all-to').value;
+        // ══════════════════════════════════════════════════════════════════════════
+        // ── CHALLAN TAB LOGIC ─────────────────────────────────────────────────────
+        // ══════════════════════════════════════════════════════════════════════════
+
+        function applyChallanFilter() {
+            const search  = (document.getElementById('challan-search').value || '').toLowerCase();
+            const fromVal = document.getElementById('challan-from').value;
+            const toVal   = document.getElementById('challan-to').value;
             const from    = fromVal ? new Date(fromVal) : null;
             const to      = toVal   ? new Date(toVal + 'T23:59:59') : null;
 
-            const filtered = repAllInvoices.filter(inv => {
-                const d = new Date(inv.date);
+            repChallanFiltered = repAllChallans.filter(ch => {
+                const d = new Date(ch.date);
                 if (from && d < from) return false;
                 if (to   && d > to)   return false;
                 if (search && !(
-                    (inv.invoiceNo||'').toLowerCase().includes(search) ||
-                    (inv.buyerName||'').toLowerCase().includes(search) ||
-                    (inv.challanNo||'').toLowerCase().includes(search)
+                    (ch.challanNo||'').toLowerCase().includes(search) ||
+                    (ch.buyerName||'').toLowerCase().includes(search) ||
+                    (ch.refInvoiceNo||'').toLowerCase().includes(search)
                 )) return false;
                 return true;
             });
 
-            if (!filtered.length) {
-                showToast('No data to export. Apply a filter or load invoices first.', 'error');
+            renderChallanTable(repChallanFiltered);
+        }
+
+        function clearChallanFilter() {
+            document.getElementById('challan-search').value = '';
+            document.getElementById('challan-from').value   = '';
+            document.getElementById('challan-to').value     = '';
+            applyChallanFilter();
+        }
+
+        function renderChallanTable(arr) {
+            const rev = arr.reduce((s, c) => s + (parseFloat(c.grandTotal)||0), 0);
+            document.getElementById('challan-summary-row').textContent =
+                `Showing ${arr.length} challan${arr.length!==1?'s':''} · Total: ${fmtINR(rev)}`;
+
+            if (!arr.length) {
+                document.getElementById('challan-report-body').innerHTML =
+                    '<tr><td colspan="7" class="text-center py-10 text-slate-400 text-xs">No challans found.</td></tr>';
                 return;
             }
 
-            // Build rows array
-            const headers = ['Invoice No.', 'Date', 'Buyer Name', 'Buyer Address', 'Buyer GSTIN', 'Challan No.', 'Sub Total (₹)', 'Tax Amount (₹)', 'Grand Total (₹)', 'Saved By'];
-            const rows = filtered.map(inv => [
-                inv.invoiceNo   || '',
-                fmtDate(inv.date),
-                inv.buyerName   || '',
-                inv.buyerAddress|| '',
-                inv.buyerGstin  || '',
-                inv.challanNo   || '',
-                parseFloat(inv.subTotal   || 0),
-                parseFloat(inv.taxAmount  || 0),
-                parseFloat(inv.grandTotal || 0),
-                inv.username    || ''
+            document.getElementById('challan-report-body').innerHTML = arr.map((ch, idx) => `
+                <tr>
+                    <td><span class="font-mono font-bold text-amber-700 text-[11px]">${ch.challanNo || '-'}</span></td>
+                    <td class="text-slate-500">${fmtDate(ch.date)}</td>
+                    <td class="font-semibold text-slate-700 max-w-[140px] truncate" title="${ch.buyerName||''}">${ch.buyerName || '-'}</td>
+                    <td class="text-slate-400 font-mono text-[11px]">${ch.refInvoiceNo || '-'}</td>
+                    <td class="text-right font-bold text-slate-800 pr-5">${fmtINR(parseFloat(ch.grandTotal)||0)}</td>
+                    <td class="text-slate-400 text-[11px]">${ch.username || '-'}</td>
+                    <td class="text-center">
+                        <button onclick="openChallanModal(${idx})" class="px-3 py-1.5 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 transition-all">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openChallanModal(idx) {
+            const ch = repChallanFiltered.length ? repChallanFiltered[idx] : repAllChallans[idx];
+            if (!ch) return;
+            currentChallanDetail = ch;
+
+            document.getElementById('cm-challan-no').textContent  = ch.challanNo || '-';
+            document.getElementById('cm-date').textContent        = fmtDate(ch.date);
+            document.getElementById('cm-buyer-name').textContent  = ch.buyerName || '-';
+            document.getElementById('cm-buyer-phone').textContent = ch.buyerPhone ? 'Ph: ' + ch.buyerPhone : '';
+            document.getElementById('cm-buyer-email').textContent = ch.buyerEmail || '';
+            document.getElementById('cm-subtotal').textContent    = fmtINR(parseFloat(ch.subTotal)||0);
+            document.getElementById('cm-tax').textContent         = fmtINR(parseFloat(ch.taxAmount)||0);
+            document.getElementById('cm-grand').textContent       = fmtINR(parseFloat(ch.grandTotal)||0);
+
+            const items = (() => { try { return JSON.parse(ch.items || '[]'); } catch(e) { return []; } })();
+            document.getElementById('cm-items-body').innerHTML = items.length
+                ? items.map((it, i) => `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td class="font-semibold">${it.desc||'-'}</td>
+                        <td class="font-mono">${it.hsn||'-'}</td>
+                        <td>${it.qty} ${it.per||''}</td>
+                        <td class="text-right">₹${parseFloat(it.rate||0).toFixed(2)}</td>
+                        <td class="text-right pr-4 font-bold">₹${parseFloat(it.amount||0).toFixed(2)}</td>
+                    </tr>`).join('')
+                : '<tr><td colspan="6" class="text-center py-4 text-slate-400 text-xs">No items data</td></tr>';
+
+            document.getElementById('challan-modal').classList.remove('hidden');
+        }
+
+        function closeChallanModal() {
+            document.getElementById('challan-modal').classList.add('hidden');
+            currentChallanDetail = null;
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('challan-modal') && document.getElementById('challan-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeChallanModal();
+        });
+
+        // ── CHALLAN PRINT WINDOW ──────────────────────────────────────────────────
+        function printChallanWindow() {
+            if (!currentChallanDetail) return;
+            const ch         = currentChallanDetail;
+            const items      = (() => { try { return JSON.parse(ch.items || '[]'); } catch(e) { return []; } })();
+            const grandTotal = parseFloat(ch.grandTotal) || 0;
+            const wordsStr   = 'INR ' + numberToWords(Math.round(grandTotal));
+
+            const itemRows = items.map((it, idx) => `
+                <div class="flex min-h-[18px]">
+                    <div class="w-[8%] p-1 text-center">${idx + 1}</div>
+                    <div class="w-[42%] p-1 pl-2 font-bold">${it.desc || '---------------------'}</div>
+                    <div class="w-[12%] p-1 text-center">${it.hsn || '-'}</div>
+                    <div class="w-[10%] p-1 text-right pr-2"><b>${it.qty}</b> ${it.per || 'Nos'}</div>
+                    <div class="w-[10%] p-1 text-right pr-2">${parseFloat(it.rate || 0).toFixed(2)}</div>
+                    <div class="w-[6%] p-1 text-center">${it.per || 'Nos'}</div>
+                    <div class="w-[12%] p-1 text-right font-bold pr-2">${parseFloat(it.amount || 0).toFixed(2)}</div>
+                </div>`).join('');
+
+            const taxAmount = parseFloat(ch.taxAmount || 0);
+            const cgstAmt   = taxAmount / 2;
+            const sgstAmt   = taxAmount / 2;
+
+            const taxRows = `
+                <div class="flex mt-6 font-medium">
+                    <div class="w-[8%] p-1"></div>
+                    <div class="w-[42%] p-1 pl-2 text-right italic font-semibold">CGST</div>
+                    <div class="w-[12%] p-1"></div><div class="w-[10%] p-1"></div><div class="w-[10%] p-1"></div><div class="w-[6%] p-1"></div>
+                    <div class="w-[12%] p-1 text-right pr-2 font-bold">${cgstAmt.toFixed(2)}</div>
+                </div>
+                <div class="flex font-medium">
+                    <div class="w-[8%] p-1"></div>
+                    <div class="w-[42%] p-1 pl-2 text-right italic font-semibold">SGST</div>
+                    <div class="w-[12%] p-1"></div><div class="w-[10%] p-1"></div><div class="w-[10%] p-1"></div><div class="w-[6%] p-1"></div>
+                    <div class="w-[12%] p-1 text-right pr-2 font-bold">${sgstAmt.toFixed(2)}</div>
+                </div>`;
+
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Challan ${ch.challanNo || ''}</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box !important; }
+        .tally-border   { border: 1px solid #000 !important; }
+        .tally-border-b { border-bottom: 1px solid #000 !important; }
+        .tally-border-t { border-top: 1px solid #000 !important; }
+        .tally-border-r { border-right: 1px solid #000 !important; }
+        .tally-border-l { border-left: 1px solid #000 !important; }
+        @media print {
+            body { background: white !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; display: block !important; }
+            #printable-challan {
+                position: absolute !important; left: 0 !important; top: 0 !important;
+                width: 190mm !important; max-width: 190mm !important;
+                height: 277mm !important; min-height: 277mm !important; max-height: 277mm !important;
+                margin: 0 auto !important; padding: 0 !important;
+                box-shadow: none !important; background: white !important;
+                page-break-inside: avoid !important;
+                display: flex !important; flex-direction: column !important;
+            }
+            #items-table-container { flex-grow: 1 !important; height: auto !important; }
+            @page { size: A4 portrait; margin: 10mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-scheme: light !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans flex items-start justify-center p-6">
+<div id="printable-challan" class="bg-white shadow-xl" style="width:190mm;max-width:190mm;min-height:277mm;height:277mm;max-height:277mm;font-size:10px;display:flex;flex-direction:column;">
+    <div class="tally-border" style="flex:1;display:flex;flex-direction:column;">
+        <div class="text-center font-bold text-lg py-1 tally-border-b underline tracking-wider bg-white">DELIVERY CHALLAN</div>
+        <div class="flex tally-border-b" style="min-height:135px;">
+            <div class="w-1/2 tally-border-r p-2 flex flex-col justify-between">
+                <div>
+                    <div class="font-bold text-sm uppercase">${state.company.name}</div>
+                    <div class="mt-1 font-medium">${state.company.address}</div>
+                    <div class="mt-1 font-medium text-[9px]"><span class="font-bold">Ph:</span> ${state.company.phone} | <span class="font-bold">Email:</span> ${state.company.email}</div>
+                    <div class="font-medium text-[9px]"><span class="font-bold">Web:</span> ${state.company.website}</div>
+                    <div class="mt-1"><span class="font-bold">GSTIN/UIN: </span>${state.company.gstin}</div>
+                    <div><span class="font-bold">State Name: </span>${state.company.state}, <span class="font-bold">Code:</span> ${state.company.stateCode}</div>
+                </div>
+            </div>
+            <div class="w-1/2 flex flex-col">
+                <div class="flex tally-border-b flex-1">
+                    <div class="w-1/2 tally-border-r p-1 pl-2"><div class="font-bold">Challan No.</div><div class="font-bold text-xs">${ch.challanNo || '-'}</div></div>
+                    <div class="w-1/2 p-1 pl-2"><div class="font-bold">Dated</div><div class="font-semibold">${fmtDate(ch.date)}</div></div>
+                </div>
+                <div class="flex tally-border-b flex-1">
+                    <div class="w-1/2 tally-border-r p-1 pl-2"><div class="font-bold">Ref. Invoice No.</div><div class="font-semibold">${ch.refInvoiceNo || '-'}</div></div>
+                    <div class="w-1/2 p-1 pl-2"><div class="font-bold">Mode of Transport</div><div>-</div></div>
+                </div>
+                <div class="flex flex-1">
+                    <div class="w-1/2 tally-border-r p-1 pl-2"><div class="font-bold">Supplier's Ref.</div><div>-</div></div>
+                    <div class="w-1/2 p-1 pl-2"><div class="font-bold">Other Reference(s)</div><div>-</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="flex tally-border-b" style="min-height:115px;">
+            <div class="w-1/2 tally-border-r p-2 flex flex-col justify-between">
+                <div>
+                    <div class="font-bold text-[9px] uppercase tracking-wide text-gray-500">Consignee (Ship to)</div>
+                    <div class="font-bold text-sm uppercase mt-1">${ch.buyerName || '-----------'}</div>
+                    ${ch.buyerPhone ? '<div class="mt-1"><span class="font-bold">Ph: </span>' + ch.buyerPhone + '</div>' : ''}
+                    ${ch.buyerEmail ? '<div><span class="font-bold">Email: </span>' + ch.buyerEmail + '</div>' : ''}
+                </div>
+            </div>
+            <div class="w-1/2 flex flex-col">
+                <div class="flex tally-border-b flex-1">
+                    <div class="w-1/2 tally-border-r p-1 pl-2"><div class="font-bold">Dispatch Doc. No.</div><div>-</div></div>
+                    <div class="w-1/2 p-1 pl-2"><div class="font-bold">Delivery Note Date</div><div>-</div></div>
+                </div>
+                <div class="flex tally-border-b flex-1">
+                    <div class="w-1/2 tally-border-r p-1 pl-2"><div class="font-bold">Dispatched through</div><div>-</div></div>
+                    <div class="w-1/2 p-1 pl-2"><div class="font-bold">Destination</div><div>-</div></div>
+                </div>
+                <div class="flex flex-1">
+                    <div class="w-full p-1 pl-2"><div class="font-bold">Terms of Delivery</div><div>-</div></div>
+                </div>
+            </div>
+        </div>
+        <div id="items-table-container" class="tally-border-b flex-grow flex flex-col relative" style="min-height:280px;">
+            <div class="absolute top-0 bottom-0 left-0 w-full flex pointer-events-none">
+                <div class="w-[8%] tally-border-r h-full"></div>
+                <div class="w-[42%] tally-border-r h-full"></div>
+                <div class="w-[12%] tally-border-r h-full"></div>
+                <div class="w-[10%] tally-border-r h-full"></div>
+                <div class="w-[10%] tally-border-r h-full"></div>
+                <div class="w-[6%] tally-border-r h-full"></div>
+                <div class="w-[12%] h-full"></div>
+            </div>
+            <div class="w-full flex tally-border-b font-bold text-center z-10 bg-white">
+                <div class="w-[8%] tally-border-r p-1">Sl No.</div>
+                <div class="w-[42%] tally-border-r p-1 text-left pl-2">Description of Goods</div>
+                <div class="w-[12%] tally-border-r p-1">HSN/SAC</div>
+                <div class="w-[10%] tally-border-r p-1">Quantity</div>
+                <div class="w-[10%] tally-border-r p-1">Rate</div>
+                <div class="w-[6%] tally-border-r p-1">per</div>
+                <div class="w-[12%] p-1 text-right pr-2">Amount</div>
+            </div>
+            <div class="w-full flex-1 z-10 pt-1 overflow-hidden">
+                ${itemRows}${taxRows}
+            </div>
+        </div>
+        <div class="flex tally-border-b font-bold bg-white">
+            <div class="w-[8%] p-1"></div>
+            <div class="w-[42%] p-1 text-right pr-2">Total</div>
+            <div class="w-[12%] p-1"></div>
+            <div class="w-[10%] p-1"></div>
+            <div class="w-[10%] p-1"></div>
+            <div class="w-[6%] p-1"></div>
+            <div class="w-[12%] p-1 text-right pr-2 tally-border-l">&#8377; ${grandTotal.toFixed(2)}</div>
+        </div>
+        <div class="tally-border-b p-2 bg-white">
+            <div class="font-bold text-[10px] uppercase text-gray-500">Amount Chargeable (in words)</div>
+            <div class="font-bold text-[11px] mt-1">${wordsStr}</div>
+        </div>
+        <div class="tally-border-b flex">
+            <div class="w-1/2 tally-border-r p-2">
+                <div class="font-bold underline mb-1">Declaration</div>
+                <div class="text-justify text-[9px] leading-tight text-gray-700">We declare that this challan shows the actual description of goods delivered and that all particulars are true and correct.</div>
+            </div>
+            <div class="w-1/2 p-2 relative flex flex-col justify-between">
+                <div class="text-right font-bold text-[10px]">for ${state.company.name}</div>
+                <div class="text-right font-bold mt-14 pb-1">Authorised Signatory</div>
+            </div>
+        </div>
+        <div class="text-center py-1 text-[9px] font-semibold text-gray-600">SUBJECT TO MAHARASHTRA JURISDICTION</div>
+        <div class="text-center pb-1 text-[9px] text-gray-500">This is a Computer Generated Delivery Challan</div>
+    </div>
+</div>
+<script>window.onload = () => { window.print(); };<\/script>
+</body>
+</html>`;
+
+            const w = window.open('', '_blank', 'width=960,height=800');
+            if (w) { w.document.open(); w.document.write(html); w.document.close(); }
+            else   { showToast('Popup blocked. Please allow popups and try again.', 'error'); }
+        }
+
+        // ── CHALLAN EXCEL DOWNLOAD ────────────────────────────────────────────────
+        function downloadChallanExcel() {
+            const data = repChallanFiltered.length > 0 ? repChallanFiltered : repAllChallans;
+
+            if (!data.length) {
+                showToast('No challan data to export.', 'error');
+                return;
+            }
+
+            const headers = ['Challan No.', 'Date', 'Buyer Name', 'Buyer Phone', 'Buyer Email', 'Ref. Invoice No.', 'Sub Total (₹)', 'Tax Amount (₹)', 'Grand Total (₹)', 'Saved By'];
+            const rows = data.map(ch => [
+                ch.challanNo     || '',
+                fmtDate(ch.date),
+                ch.buyerName     || '',
+                ch.buyerPhone    || '',
+                ch.buyerEmail    || '',
+                ch.refInvoiceNo  || '',
+                parseFloat(ch.subTotal   || 0),
+                parseFloat(ch.taxAmount  || 0),
+                parseFloat(ch.grandTotal || 0),
+                ch.username      || ''
             ]);
 
-            // Add summary total row at the bottom
-            const totalRev = filtered.reduce((s, i) => s + (parseFloat(i.grandTotal)||0), 0);
+            const totalRev = data.reduce((s, c) => s + (parseFloat(c.grandTotal)||0), 0);
             rows.push(['', '', '', '', '', 'TOTAL', '', '', totalRev, '']);
 
-            // Create worksheet
             const wsData = [headers, ...rows];
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-            // Style: bold header & total row; number format for currency columns
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            const currencyCols = [6, 7, 8]; // Sub Total, Tax, Grand Total (0-indexed)
+            const ws     = XLSX.utils.aoa_to_sheet(wsData);
+            const range  = XLSX.utils.decode_range(ws['!ref']);
+            const currencyCols = [6, 7, 8];
 
             for (let R = range.s.r; R <= range.e.r; R++) {
                 for (let C = range.s.c; C <= range.e.c; C++) {
                     const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
                     if (!ws[cellRef]) continue;
                     if (!ws[cellRef].s) ws[cellRef].s = {};
-
-                    // Bold header row (row 0) and total row (last row)
                     const isHeader = (R === 0);
                     const isTotal  = (R === range.e.r);
                     if (isHeader || isTotal) {
                         ws[cellRef].s.font = { bold: true };
-                        ws[cellRef].s.fill = { fgColor: { rgb: isHeader ? '0F172A' : 'DCFCE7' } };
+                        ws[cellRef].s.fill = { fgColor: { rgb: isHeader ? '78350F' : 'FEF3C7' } };
                         if (isHeader) ws[cellRef].s.font.color = { rgb: 'FFFFFF' };
                     }
-
-                    // Number format for currency columns
                     if (currencyCols.includes(C) && R > 0) {
                         ws[cellRef].z = '#,##0.00';
                     }
                 }
             }
 
-            // Column widths
             ws['!cols'] = [
-                { wch: 18 }, // Invoice No
+                { wch: 18 }, // Challan No
                 { wch: 14 }, // Date
                 { wch: 28 }, // Buyer Name
-                { wch: 28 }, // Buyer Address
-                { wch: 18 }, // GSTIN
-                { wch: 14 }, // Challan
+                { wch: 16 }, // Phone
+                { wch: 24 }, // Email
+                { wch: 18 }, // Ref Invoice
                 { wch: 16 }, // Sub Total
                 { wch: 15 }, // Tax
                 { wch: 16 }, // Grand Total
                 { wch: 14 }, // Saved By
             ];
 
-            // Create workbook and download
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Invoice Report');
+            XLSX.utils.book_append_sheet(wb, ws, 'Challan Report');
 
-            const now  = new Date();
+            const now   = new Date();
             const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-            const fileName = `GME_Invoice_Report_${stamp}.xlsx`;
-
-            XLSX.writeFile(wb, fileName);
-            showToast(`Downloaded ${filtered.length} invoice${filtered.length !== 1 ? 's' : ''} as Excel.`, 'success');
+            XLSX.writeFile(wb, `GME_Challan_Report_${stamp}.xlsx`);
+            showToast(`Downloaded ${data.length} challan${data.length !== 1 ? 's' : ''} as Excel.`, 'success');
         }
 
+        // ══════════════════════════════════════════════════════════════════════════
+        // ── INVOICE REPRINT LOGIC ─────────────────────────────────────────────────
+        // ══════════════════════════════════════════════════════════════════════════
 
         async function fetchInvoiceForReprint() {
             const invNo   = (document.getElementById('reprint-inv-input').value || '').trim();
@@ -822,15 +1189,13 @@
                     (inv.invoiceNo || '').trim().toLowerCase() === invNo.toLowerCase()
                 );
 
-                if (!found) {
-                    if (repAllInvoices.length === 0) {
-                        try {
-                            const res  = await fetch(googleScriptUrl + '?action=getDashboard');
-                            const data = await res.json();
-                            repAllInvoices = (data.invoices || []).sort((a, b) => new Date(b.date) - new Date(a.date));
-                            populateYearSelectors();
-                        } catch(e) { }
-                    }
+                if (!found && repAllInvoices.length === 0) {
+                    try {
+                        const res  = await fetch(googleScriptUrl + '?action=getDashboard');
+                        const data = await res.json();
+                        repAllInvoices = (data.invoices || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+                        populateYearSelectors();
+                    } catch(e) {}
                     found = repAllInvoices.find(inv =>
                         (inv.invoiceNo || '').trim().toLowerCase() === invNo.toLowerCase()
                     );
@@ -841,7 +1206,7 @@
                         const res  = await fetch(googleScriptUrl + '?action=getInvoiceByNo&invoiceNo=' + encodeURIComponent(invNo));
                         const data = await res.json();
                         if (data.invoice) found = data.invoice;
-                    } catch(e) { }
+                    } catch(e) {}
                 }
 
                 if (!found) {
@@ -899,7 +1264,7 @@
             const cgstRate = parseFloat(inv.cgstRate || 0);
             const sgstRate = parseFloat(inv.sgstRate || 0);
             const igstRate = parseFloat(inv.igstRate || 0);
-            
+
             if (cgstAmt === 0 && sgstAmt === 0) {
                 const taxTotal = parseFloat(inv.taxAmount || 0);
                 cgstAmt = taxTotal / 2;
@@ -983,12 +1348,9 @@
     </style>
 </head>
 <body class="bg-slate-100 font-sans flex items-start justify-center p-6">
-
 <div id="printable-invoice" class="bg-white shadow-xl" style="width:190mm;max-width:190mm;min-height:277mm;height:277mm;max-height:277mm;font-size:10px;display:flex;flex-direction:column;">
     <div class="tally-border" style="flex:1;display:flex;flex-direction:column;">
-
         <div class="text-center font-bold text-lg py-1 tally-border-b underline tracking-wider bg-white">TAX INVOICE</div>
-
         <div class="flex tally-border-b" style="min-height:135px;">
             <div class="w-1/2 tally-border-r p-2 flex flex-col justify-between">
                 <div>
@@ -1015,7 +1377,6 @@
                 </div>
             </div>
         </div>
-
         <div class="flex tally-border-b" style="min-height:115px;">
             <div class="w-1/2 tally-border-r p-2 flex flex-col justify-between">
                 <div>
@@ -1042,7 +1403,6 @@
                 </div>
             </div>
         </div>
-
         <div id="items-table-container" class="tally-border-b flex-grow flex flex-col relative" style="min-height:280px;">
             <div class="absolute top-0 bottom-0 left-0 w-full flex pointer-events-none">
                 <div class="w-[8%] tally-border-r h-full"></div>
@@ -1066,7 +1426,6 @@
                 ${itemRows}${taxRows}
             </div>
         </div>
-
         <div class="flex tally-border-b font-bold bg-white">
             <div class="w-[8%] p-1"></div>
             <div class="w-[42%] p-1 text-right pr-2">Total</div>
@@ -1076,12 +1435,10 @@
             <div class="w-[6%] p-1"></div>
             <div class="w-[12%] p-1 text-right pr-2 tally-border-l">&#8377; ${grandTotal.toFixed(2)}</div>
         </div>
-
         <div class="tally-border-b p-2 bg-white">
             <div class="font-bold text-[10px] uppercase text-gray-500">Amount Chargeable (in words)</div>
             <div class="font-bold text-[11px] mt-1">${wordsStr}</div>
         </div>
-
         <div class="tally-border-b flex">
             <div class="w-1/2 tally-border-r p-2">
                 <div class="font-bold underline mb-1">Declaration</div>
@@ -1092,13 +1449,10 @@
                 <div class="text-right font-bold mt-14 pb-1">Authorised Signatory</div>
             </div>
         </div>
-
         <div class="text-center py-1 text-[9px] font-semibold text-gray-600">SUBJECT TO MAHARASHTRA JURISDICTION</div>
         <div class="text-center pb-1 text-[9px] text-gray-500">This is a Computer Generated Invoice</div>
-
     </div>
 </div>
-
 <script>window.onload = () => { window.print(); };<\/script>
 </body>
 </html>`;
@@ -1107,6 +1461,16 @@
             if (w) { w.document.open(); w.document.write(html); w.document.close(); }
             else   { showToast('Popup blocked. Please allow popups and try again.', 'error'); }
         }
+
+        // Attach modal close on backdrop after DOM is ready
+        window.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('challan-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) closeChallanModal();
+                });
+            }
+        });
     </script>
 </body>
 </html>
